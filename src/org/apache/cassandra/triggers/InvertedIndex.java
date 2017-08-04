@@ -277,7 +277,44 @@ public class InvertedIndex implements ITrigger {
 										columnType);
 
 							}
-						} else {
+						} else if (columnType instanceof SetType<?>) {
+                                                        // ListType<Object> listType = (ListType<Object>)
+                                                        // type;
+                                                        CellPath path = cell.path();
+                                                        int size = path.size();
+                                                        for (int i = 0; i < size; i++) {
+                                                                ByteBuffer byteBuffer = path.get(i);
+                                                                AbstractType<Object> keysType = ((SetType)columnType)
+                                                                        .getElementsType();
+                                                                cellValue= keysType.compose(byteBuffer);
+
+                                                        }
+                                                        updateColumnCollectionInfo.put(columnName,
+                                                                        columnType.getClass().getName());
+                                                        if (cell.isLive(0)) {
+                                                                if (!dataMap.containsKey(columnName)) {
+                                                                        ArrayList<Object> arrayList = new ArrayList<Object>();
+                                                                        arrayList.add(cellValue);
+                                                                        dataMap.put(columnName, arrayList);
+                                                                } else {
+                                                                        ArrayList<Object> arrayList = (ArrayList<Object>) dataMap
+                                                                                        .get(columnName);
+                                                                        if (!arrayList.contains(cellValue)) {
+                                                                                arrayList.add(cellValue);
+                                                                        }
+                                                                }
+                                                        } else {
+                                                                myString.updateType = "UPDATE_COLLECTION";
+
+                                                                final String finalColumnName = columnName;
+                                                                // myString.updateType = "DONE";
+                                                                final AbstractType<?> finalColumnType = columnType;
+
+                                                                updateLaterCollectionList.put(columnName,
+                                                                                columnType);
+
+                                                        }
+                                                }else {
 							if (cell.isLive(0)) {
 								dataMap.put(columnName, cellValue);
 							} else {

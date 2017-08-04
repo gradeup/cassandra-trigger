@@ -1,6 +1,8 @@
 # cassandra-trigger
 
-It syncs data from cassandra to ElasticSearch.
+It syncs data from cassandra to ElasticSearch. 
+It works with cassandra version 3.x and ElasticSearch 5.x.
+It can also be used to sync cassandra with any database, just replace ElasticSearch class with a class specific to your database.
 
 ## How to run
 
@@ -37,3 +39,9 @@ bin/nodetool reloadtriggers
 ```
 CREATE TRIGGER test1 ON "Keyspace1"."Standard1" USING 'org.apache.cassandra.triggers.InvertedIndex';
 ```
+
+## Just for fun
+
+Incase your elasticsearch/other database is down or not working, it sends the message(with data) to rabbitmq server. You can run a rabbitmq consumer to read the data from queue and insert it into elasticsearch.
+Incase you don't need that functionality just comment out function 'queueMessage' from ElasticQueue.java file.
+

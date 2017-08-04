@@ -36,13 +36,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.rabbitmq.client.ConnectionFactory;
-//import org.apache.commons.lang.SerializationUtils;
-//import com.codahale.metrics.Timer;
-//import com.datastax.driver.core.ColumnDefinitions;
-//import com.datastax.driver.core.DataType;
-//import com.datastax.driver.core.ResultSet;
-//import com.datastax.driver.core.Row;
-//
 
 public class InvertedIndex implements ITrigger {
 	private static final Logger logger = LoggerFactory

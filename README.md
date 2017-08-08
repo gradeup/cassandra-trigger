@@ -45,3 +45,15 @@ CREATE TRIGGER test1 ON "Keyspace1"."Standard1" USING 'org.apache.cassandra.trig
 Incase your elasticsearch/other database is down or not working, it sends the message(with data) to rabbitmq server. You can run a rabbitmq consumer to read the data from queue and insert it into elasticsearch.
 Incase you don't need that functionality just comment out function 'queueMessage' from ElasticQueue.java file.
 
+## General Tip
+For all the updates in cassandra, we get value of primary key and clustering key in trigger code and the updated column and its value.
+So, whenever creating a table in cassandra, try to keep routing key(of the corresponding index in elasticsearch) part of primary key or cluster key as you would require routing key when updating document in ES.
+
+For eg. 
+Cassandra Table Structure : 
+user_post (userid, postid, text, somecol) with primary key userid and clustering key as postid.
+
+Corresponding ES Index : 
+'user_post' with routing userid or postid as you would get these values in your cassandra trigger directly. In case you would have kept 'somecol' as routing key, then you would need to query ES for value of 'somecol' which would make write slow.
+
+

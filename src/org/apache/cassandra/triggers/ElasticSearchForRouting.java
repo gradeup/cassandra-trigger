@@ -15,7 +15,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -35,7 +34,6 @@ import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.script.Script;
-//import org.elasticsearch.script.ScriptService.ScriptType;
 import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +78,8 @@ public class ElasticSearchForRouting {
 	}
 
 	public String getDocumentRouting(String index, String type, String id,
-			boolean refresh,Map<String,Object> primaryKeyData, Map<String,Object> clusteringKeyData) {
+			boolean refresh, Map<String, Object> primaryKeyData,
+			Map<String, Object> clusteringKeyData) {
 		Map<String, Object> result = null;
 		String searchindex = Constants.INDEX_ROUTING_MAP.get(index);
 		if (searchindex == null) {
@@ -90,11 +89,11 @@ public class ElasticSearchForRouting {
 			initialize();
 		}
 		Object value = primaryKeyData.get(searchindex);
-		if(value!=null){
+		if (value != null) {
 			return value.toString();
 		}
-		 value = clusteringKeyData.get(searchindex);
-		if(value!=null){
+		value = clusteringKeyData.get(searchindex);
+		if (value != null) {
 			return value.toString();
 		}
 
@@ -114,5 +113,4 @@ public class ElasticSearchForRouting {
 		}
 		return result.get(searchindex).toString();
 	}
-
 }

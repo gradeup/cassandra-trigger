@@ -60,6 +60,7 @@ public class CassandraFactory {
 	public static CassandraFactory getInstance() {
 		return new CassandraFactory();
 	}
+	
 
 	public Session getSession(String keySpaceName) {
 		Session session;

@@ -24,6 +24,7 @@ import org.apache.cassandra.db.marshal.AbstractType;
 import org.apache.cassandra.db.marshal.CompositeType;
 import org.apache.cassandra.db.marshal.ListType;
 import org.apache.cassandra.db.marshal.MapType;
+import org.apache.cassandra.db.marshal.SetType;
 import org.apache.cassandra.db.partitions.Partition;
 import org.apache.cassandra.db.rows.Cell;
 import org.apache.cassandra.db.rows.CellPath;
@@ -51,14 +52,16 @@ public class InvertedIndex implements ITrigger {
 	static ConnectionFactory factory = new ConnectionFactory();
 
 	public static String getRoutingFromEs(String key, String index,
-		Map<String,Object> primaryKeyData,Map<String,Object> clusteringKeyData) {
+			Map<String, Object> primaryKeyData,
+			Map<String, Object> clusteringKeyData) {
 		ElasticSearchForRouting es = new ElasticSearchForRouting();
 
 		if (es == null) {
 			return null;
 		}
 		try {
-			String routing = es.getDocumentRouting(index, index, key, true,primaryKeyData,clusteringKeyData);
+			String routing = es.getDocumentRouting(index, index, key, true,
+					primaryKeyData, clusteringKeyData);
 			return routing;
 		} catch (Exception ex) {
 			return null;
@@ -154,7 +157,8 @@ public class InvertedIndex implements ITrigger {
 				if (esId == null) {
 					return null;
 				}
-				String routing = getRoutingFromEs(esId, index,partitionKeyData,clusterKeyData);
+				String routing = getRoutingFromEs(esId, index,
+						partitionKeyData, clusterKeyData);
 
 				es = new ElasticSearch();
 				es.deleteDocument(index, type, esId, routing);
@@ -187,8 +191,10 @@ public class InvertedIndex implements ITrigger {
 
 				final Map<Object, String> updateColumnCollectionInfo = new HashMap<Object, String>();
 				HashMap<Object, Object> dataMap = new HashMap<Object, Object>();
+				HashMap<Object, Object> deletedDataMap = new HashMap<Object, Object>();
 
 				Deletion deletion = row.deletion();
+
 				if (deletion != null && !deletion.isLive()) {
 					myString.updateType = "DELETE_ROW";
 				} else {
@@ -200,17 +206,11 @@ public class InvertedIndex implements ITrigger {
 						// AbstractType<?> type = column.type;
 						AbstractType<Object> cellValueType = (AbstractType<Object>) column
 								.cellValueType();
-
 						Object cellValue = cellValueType.compose(cell.value());
-
 						AbstractType<?> columnType = column.type;
 						if (cell.isCounterCell()) {
 							myString.updateType = "UPDATE_COUNTER";
-							// if (cell.isLive(0)) {
 							dataMap.put(columnName, cellValue);
-							// } else {
-							// dataMap.put(columnName, null);
-							// }
 						} else if (columnType instanceof MapType<?, ?>) {
 							updateColumnCollectionInfo.put(columnName,
 									columnType.getClass().getName());
@@ -232,22 +232,58 @@ public class InvertedIndex implements ITrigger {
 										map.put(cellKey.toString(), cellValue);
 									} else {
 										map.put(cellKey.toString(), null);
-										myString.updateType = "UPDATE_COLLECTION";
-										updateLaterCollectionList.put(
-												columnName, columnType);
 									}
 								} else {
 									Map<Object, Object> map = (Map<Object, Object>) dataMap
 											.get(columnName);
+
 									if (cell.isLive(0)) {
 										map.put(cellKey.toString(), cellValue);
 									} else {
-										myString.updateType = "UPDATE_COLLECTION";
 										map.put(cellKey.toString(), null);
-										updateLaterCollectionList.put(
-												columnName, columnType);
 									}
 								}
+							}
+						} else if (columnType instanceof SetType<?>) {
+							// ListType<Object> listType = (ListType<Object>)
+							// type;
+							CellPath path = cell.path();
+							int size = path.size();
+							for (int i = 0; i < size; i++) {
+								ByteBuffer byteBuffer = path.get(i);
+								AbstractType<Object> keysType = ((SetType) columnType)
+										.getElementsType();
+								cellValue = keysType.compose(byteBuffer);
+
+							}
+							updateColumnCollectionInfo.put(columnName,
+									columnType.getClass().getName());
+							if (cell.isLive(0)) {
+								if (!dataMap.containsKey(columnName)) {
+									ArrayList<Object> arrayList = new ArrayList<Object>();
+									arrayList.add(cellValue);
+									dataMap.put(columnName, arrayList);
+								} else {
+									ArrayList<Object> arrayList = (ArrayList<Object>) dataMap
+											.get(columnName);
+									if (!arrayList.contains(cellValue)) {
+										arrayList.add(cellValue);
+									}
+								}
+							} else {
+
+								if (!deletedDataMap.containsKey(columnName)) {
+									ArrayList<Object> arrayList = new ArrayList<Object>();
+									arrayList.add(cellValue);
+									deletedDataMap.put(columnName, arrayList);
+								} else {
+									ArrayList<Object> arrayList = (ArrayList<Object>) dataMap
+											.get(columnName);
+									if (!arrayList.contains(cellValue)) {
+										arrayList.add(cellValue);
+									}
+								}
+
 							}
 						} else if (columnType instanceof ListType<?>) {
 							// ListType<Object> listType = (ListType<Object>)
@@ -267,7 +303,6 @@ public class InvertedIndex implements ITrigger {
 									}
 								}
 							} else {
-								myString.updateType = "UPDATE_COLLECTION";
 
 								final String finalColumnName = columnName;
 								// myString.updateType = "DONE";
@@ -277,44 +312,7 @@ public class InvertedIndex implements ITrigger {
 										columnType);
 
 							}
-						} else if (columnType instanceof SetType<?>) {
-                                                        // ListType<Object> listType = (ListType<Object>)
-                                                        // type;
-                                                        CellPath path = cell.path();
-                                                        int size = path.size();
-                                                        for (int i = 0; i < size; i++) {
-                                                                ByteBuffer byteBuffer = path.get(i);
-                                                                AbstractType<Object> keysType = ((SetType)columnType)
-                                                                        .getElementsType();
-                                                                cellValue= keysType.compose(byteBuffer);
-
-                                                        }
-                                                        updateColumnCollectionInfo.put(columnName,
-                                                                        columnType.getClass().getName());
-                                                        if (cell.isLive(0)) {
-                                                                if (!dataMap.containsKey(columnName)) {
-                                                                        ArrayList<Object> arrayList = new ArrayList<Object>();
-                                                                        arrayList.add(cellValue);
-                                                                        dataMap.put(columnName, arrayList);
-                                                                } else {
-                                                                        ArrayList<Object> arrayList = (ArrayList<Object>) dataMap
-                                                                                        .get(columnName);
-                                                                        if (!arrayList.contains(cellValue)) {
-                                                                                arrayList.add(cellValue);
-                                                                        }
-                                                                }
-                                                        } else {
-                                                                myString.updateType = "UPDATE_COLLECTION";
-
-                                                                final String finalColumnName = columnName;
-                                                                // myString.updateType = "DONE";
-                                                                final AbstractType<?> finalColumnType = columnType;
-
-                                                                updateLaterCollectionList.put(columnName,
-                                                                                columnType);
-
-                                                        }
-                                                }else {
+						} else {
 							if (cell.isLive(0)) {
 								dataMap.put(columnName, cellValue);
 							} else {
@@ -335,22 +333,22 @@ public class InvertedIndex implements ITrigger {
 								.next();
 						String columnName = columnDefinition.name + "";
 						if (!dataMap.containsKey(columnName)) {
-							dataMap.put(columnName, null);
+							AbstractType<?> columnType = columnDefinition.type;
+							updateLaterCollectionList.put(columnName,
+									columnType);
 						}
 
 					}
 
 					Set<Entry<Object, Object>> keySet = dataMap.entrySet();
 
-					if (myString.updateType
-							.equalsIgnoreCase("UPDATE_COLLECTION")) {
+					if (updateLaterCollectionList.size() > 0) {
 						// deletedata wala handling
-						shouldRun = false;
+						// shouldRun = false;
 						setUpdateForLater(updateLaterCollectionList,
 								indexColumnFamily, partitionKeyData,
 								clusterKeyData, index, type, esId);
 
-						continue;
 					}
 				}
 				currentDataMap = dataMap;
@@ -361,17 +359,16 @@ public class InvertedIndex implements ITrigger {
 				currentUpdateColumnCollectionInfo = updateColumnCollectionInfo;
 
 				es = new ElasticSearch();
-				String routing = getRoutingFromEs(currentEsId, currentIndex,partitionKeyData,clusterKeyData);
+				String routing = getRoutingFromEs(currentEsId, currentIndex,
+						partitionKeyData, clusterKeyData);
 
 				if (myString.updateType.equalsIgnoreCase("UPDATE_COUNTER")) {
-
 					es.updateCounterFieldsInDocument(index, type, esId,
 							routing, dataMap);
-
 					shouldRun = true;
 				} else if (myString.updateType.equalsIgnoreCase("UPDATE_ROW")) {
 					es.updateFieldsInDocument(index, type, esId, routing,
-							dataMap, updateColumnCollectionInfo);
+							dataMap, updateColumnCollectionInfo, deletedDataMap);
 					shouldRun = true;
 				} else if (myString.updateType.equalsIgnoreCase("DELETE_ROW")) {
 					es.deleteDocument(index, type, esId, routing);
@@ -382,11 +379,12 @@ public class InvertedIndex implements ITrigger {
 				}
 			}
 		} catch (RuntimeException e) {
-			ElasticSearch.mutex.clear();
+
 			if (es != null) {
 				es.close();
 			}
 			logger.info("CAUTION : TRIGGER FAILURE : " + e.getMessage());
+			logger.error("exception : ", e);
 			try {
 				ElasticQueue.queueMessage(currentEsId, currentType,
 						currentIndex, currentMyString.updateType,
@@ -479,10 +477,12 @@ public class InvertedIndex implements ITrigger {
 												}
 											}
 											String routing = getRoutingFromEs(
-													esId, index,tempPartitionKeyData,tempClusterKeyData);
+													esId, index,
+													tempPartitionKeyData,
+													tempClusterKeyData);
 											data.putAll(tempPartitionKeyData);
 											data.putAll(tempClusterKeyData);
-											tempEs.deleteFieldsInDocument(
+											tempEs.fullFieldUpdateInDocument(
 													index, type, esId, routing,
 													data, typeData);
 
@@ -491,9 +491,10 @@ public class InvertedIndex implements ITrigger {
 											if (tempEs != null) {
 												tempEs.close();
 											}
-											ElasticSearch.mutex.clear();
+
 											logger.info("CAUTION : TRIGGER FAILURE : In delete "
 													+ e.getMessage());
+											logger.error("exception : ", e);
 											try {
 												ElasticQueue.queueMessage(esId,
 														type, index,

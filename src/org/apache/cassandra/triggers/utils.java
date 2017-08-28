@@ -37,7 +37,19 @@ public class utils {
 		String key = Constants.ES_INDEX_KEY_MAP.get(indexColumnFamily);
 		try {
 			if (key != null) {
-				return allKeyValueList.get(key).toString();
+				if(!key.contains("#")){
+					return allKeyValueList.get(key).toString();
+				}else{
+
+					String[] split=key.split("#");
+					String finalId="";
+					for(String s:split){
+						finalId+=allKeyValueList.get(s).toString()+"-";
+					}
+					finalId=finalId.substring(0,finalId.length()-1);
+
+					return finalId;
+				}
 			}
 		} catch (Exception e) {
 

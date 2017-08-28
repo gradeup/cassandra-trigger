@@ -34,7 +34,7 @@ public class ElasticQueue {
 			messageObject.put("type", currentType);
 			messageObject.put("updateType", updateType);
 
-			channel.basicPublish("", QUEUE_NAME, null,
+			channel.basicPublish("", Constants.QUEUE_NAME, null,
 					SerializationUtils.serialize(messageObject));
 
 			channel.close();

@@ -421,7 +421,7 @@ public class InvertedIndex implements ITrigger {
 
 									public void onDataObtained(
 											com.datastax.driver.core.ResultSet resultSet) {
-										ElasticSearch tempEs = new ElasticSearch();
+										ElasticSearch tempEs = new ElasticSearch(index);
 										HashMap<Object, String> typeData = new HashMap<Object, String>();
 										HashMap<Object, Object> data = new HashMap<Object, Object>();
 										try {

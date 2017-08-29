@@ -2,56 +2,49 @@ package org.apache.cassandra.triggers;
 
 import org.elasticsearch.client.Client;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import java.net.InetAddress;
+import java.util.Map;
+import java.util.HashMap;
 
 public class ElasticClient{
 
-	private Map<String,Integer> ipPortMap;	
-	private String clustername;	
-	private Client client = null;
-
-	public ElasticClient(Stirng clusterName,Map<String,Integer> ipPortMap){
-		this.ipPortMap=ipPortMap;
-		this.clustername=clustername;
-	}
+	private Map<String,Integer> ipPortMap;
+	private String clustername;
+	private PreBuiltTransportClient client = null;
 	public static void createClients(){
-		Map<String,Map<String,Integer> localClients=new HashMap();
-		for (String config; Constants.ELASTIC_CLUSTER_MAP) {
+		Map<String,Map<String,Integer>> localClients=new HashMap();
+		for (String config: Constants.ELASTIC_CLUSTER_MAP) {
 			String []localConfig=config.split(":");
-			Map<String,String> ipConfig=localClients.get(localConfig[0]);						
+			Map<String,Integer> ipConfig=localClients.get(localConfig[0]);
 			if(ipConfig==null){
 				ipConfig=new HashMap<String,Integer>();
 				localClients.put(localConfig[0],ipConfig);
 				new ElasticClient(localConfig[0],ipConfig);
 			}
-			ipConfig.put(localClients[1],Integer.parseInt(localClients[2]);
+			ipConfig.put(localConfig[1],Integer.parseInt(localConfig[2]));
 		}
 
 	}
-	public ElasticClient(String clustername,Map<String,String> ipPortMap){
-			this.ipPortMap=ipPortMap;		
+	public ElasticClient(String clustername,Map<String,Integer> ipPortMap){
+			this.ipPortMap=ipPortMap;
 			this.clustername=clustername;
 			elasticClients.put(clustername,this);
 	}
-	
-	private static HashMap <String,ElasticClient> elasticClients=new HashMap<String,ElasticClient>();		
-	
 
-	public static Client getClient(String index){
+	private static HashMap <String,ElasticClient> elasticClients=new HashMap<String,ElasticClient>();
+	public static PreBuiltTransportClient getClient(String index){
 		String clustername=Constants.INDEX_CLUSTER_MAP.get(index);
-		
 		if(clustername==null){
 			Constants.INDEX_CLUSTER_MAP.put(index,Constants.DEFAULT_ELASTIC_CLUSTER_NAME);
 			clustername=Constants.DEFAULT_ELASTIC_CLUSTER_NAME;
 		}
-
 		ElasticClient elasticClient=elasticClients.get(clustername);
-
 		if(elasticClient==null){
-			return ;
+			return null;
 		}
 		if (elasticClient.client == null) {
-			instanceCount++;			
-			logger.info("Connecting ES " + instanceCount);
 			try {
 				Settings settings = Settings.builder()
 						.put("cluster.name", elasticClient.clustername)
@@ -63,12 +56,12 @@ public class ElasticClient{
 								InetAddress.getByName(entry.getKey()),
 								entry.getValue()));
 				}
-				
+
 			} catch (Exception e) {
 				e.printStackTrace();
-				if (client != null) {
+				if (elasticClient.client != null) {
 					try {
-						client.close();
+						elasticClient.client.close();
 					} catch (Exception e1) {
 
 					}
@@ -78,7 +71,7 @@ public class ElasticClient{
 
 			}
 
-		} 
+		}
 		return elasticClient.client;
 	}
 

@@ -60,8 +60,6 @@ public class ElasticSearchForRouting {
 			if(client==null){
 				return;
 			}
-			logger.info("Connecting ES " + instanceCount);			
-			bulkRequest = client.prepareBulk();						
 		}
 	}
 

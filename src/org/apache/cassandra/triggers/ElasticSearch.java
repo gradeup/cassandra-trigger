@@ -2,6 +2,7 @@ package org.apache.cassandra.triggers;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
+import org.elasticsearch.client.Client;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -41,16 +42,16 @@ public class ElasticSearch {
 	}
 
 	public static int instanceCount = 0;
-	long lastupdated = System.currentTimeMillis();	
+	long lastupdated = System.currentTimeMillis();
 
-	public void initialize() {	
+	public void initialize() {
 		if(client==null){
 			client=ElasticClient.getClient(esIndex);
 			if(client==null){
 				return;
 			}
-			logger.info("Connecting ES " + instanceCount);			
-			bulkRequest = client.prepareBulk();						
+			logger.info("Connecting ES " + instanceCount);
+			bulkRequest = client.prepareBulk();
 		}
 	}
 

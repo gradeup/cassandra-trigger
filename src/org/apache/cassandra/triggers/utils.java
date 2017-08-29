@@ -34,7 +34,7 @@ public class utils {
 		Map<String, Object> allKeyValueList = new HashMap<String, Object>();
 		allKeyValueList.putAll(partitionKeyValueList);
 		allKeyValueList.putAll(clusterKeyValueList);
-		String key = Constants.ES_INDEX_KEY_MAP.get(indexColumnFamily);
+		String key = Constants.INDEX_KEY_MAP.get(indexColumnFamily);
 		try {
 			if (key != null) {
 				if(!key.contains("#")){

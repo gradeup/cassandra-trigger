@@ -17,68 +17,40 @@ import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.action.update.UpdateRequestBuilder;
 import org.elasticsearch.action.update.UpdateRequest;
-import org.elasticsearch.client.Client;
+
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.script.Script;
 import org.elasticsearch.script.ScriptType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 public class ElasticSearch {
 	private static final Logger logger = LoggerFactory
 			.getLogger(ElasticSearch.class);
-	private static Client client = null;
+	private Client client = null;
 	private BulkRequestBuilder bulkRequest = null;
 
-	public ElasticSearch() {
-
+	private String esIndex;
+	public ElasticSearch(String esIndex) {
+		this.esIndex=esIndex;
 		initialize();
 	}
 
 	public static int instanceCount = 0;
-	long lastupdated = System.currentTimeMillis();
+	long lastupdated = System.currentTimeMillis();	
 
-	public void closeClient() {
-		if (client != null) {
-			client.close();
-			client = null;
-			logger.info("CLOSED");
-		}
-	}
-
-	public void initialize() {
-		if (client == null) {
-			instanceCount++;
-			logger.info("Connecting ES " + instanceCount);
-			try {
-				Settings settings = Settings.builder()
-						.put("cluster.name", Constants.ELASTIC_CLUSTER_NAME)
-						.build();
-				client = new PreBuiltTransportClient(settings)
-						.addTransportAddress(new InetSocketTransportAddress(
-								InetAddress.getByName(Constants.ELASTIC_URL),
-								Constants.ELASTIC_PORT));
-				bulkRequest = client.prepareBulk();
-			} catch (Exception e) {
-				e.printStackTrace();
-				if (client != null) {
-					try {
-						client.close();
-					} catch (Exception e1) {
-
-					}
-
-				}
-
-				client = null;
+	public void initialize() {	
+		if(client==null){
+			client=ElasticClient.getClient(esIndex);
+			if(client==null){
+				return;
 			}
-
-		} else {
-			bulkRequest = client.prepareBulk();
+			logger.info("Connecting ES " + instanceCount);			
+			bulkRequest = client.prepareBulk();						
 		}
 	}
 

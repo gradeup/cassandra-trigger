@@ -43,37 +43,25 @@ import com.google.gson.reflect.TypeToken;
 public class ElasticSearchForRouting {
 	private static final Logger logger = LoggerFactory
 			.getLogger(ElasticSearchForRouting.class);
-	private static TransportClient client = null;
+	private  TransportClient client = null;
 
 	public static int instanceCount = 0;
 
-	public ElasticSearchForRouting() {
+	private String esIndex;
+	public ElasticSearchForRouting(String esIndex) {
+		this.esIndex=esIndex;
 		initialize();
 	}
 
 	public void initialize() {
 
-		if (client == null) {
-			instanceCount++;
-			logger.info("Connecting ES " + instanceCount);
-
-			try {
-
-				Settings settings = Settings.builder()
-						.put("cluster.name", Constants.ELASTIC_CLUSTER_NAME)
-						.build();
-				InetAddress ip = InetAddress.getByName(Constants.ELASTIC_URL);
-				client = new PreBuiltTransportClient(settings)
-						.addTransportAddress(new InetSocketTransportAddress(ip,
-								Constants.ELASTIC_PORT));
-			} catch (RuntimeException e) {
-
-				e.printStackTrace();
-			} catch (Exception e) {
-
-				e.printStackTrace();
+		if(client==null){
+			client=ElasticClient.getClient(esIndex);
+			if(client==null){
+				return;
 			}
-
+			logger.info("Connecting ES " + instanceCount);			
+			bulkRequest = client.prepareBulk();						
 		}
 	}
 

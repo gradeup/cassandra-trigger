@@ -54,7 +54,7 @@ public class InvertedIndex implements ITrigger {
 	public static String getRoutingFromEs(String key, String index,
 			Map<String, Object> primaryKeyData,
 			Map<String, Object> clusteringKeyData) {
-		ElasticSearchForRouting es = new ElasticSearchForRouting();
+		ElasticSearchForRouting es = new ElasticSearchForRouting(index);
 
 		if (es == null) {
 			return null;
@@ -160,7 +160,7 @@ public class InvertedIndex implements ITrigger {
 				String routing = getRoutingFromEs(esId, index,
 						partitionKeyData, clusterKeyData);
 
-				es = new ElasticSearch();
+				es = new ElasticSearch(index);
 				es.deleteDocument(index, type, esId, routing);
 				currentEsId = esId;
 				currentIndex = index;
@@ -358,7 +358,7 @@ public class InvertedIndex implements ITrigger {
 				currentMyString = myString;
 				currentUpdateColumnCollectionInfo = updateColumnCollectionInfo;
 
-				es = new ElasticSearch();
+				es = new ElasticSearch(index);
 				String routing = getRoutingFromEs(currentEsId, currentIndex,
 						partitionKeyData, clusterKeyData);
 

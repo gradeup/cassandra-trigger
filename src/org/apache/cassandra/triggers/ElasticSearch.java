@@ -113,13 +113,20 @@ public class ElasticSearch {
 		if (client == null) {
 			initialize();
 		}
-
 		logger.info("counter value: " + key + " newValue: " + newValue);
 		String fieldName = "ctx._source." + key;
-		Script script = new Script("if(" + fieldName + "==null) {" + fieldName
-				+ "=" + newValue + "}else{" + fieldName + "+=" + newValue + "}");
-		UpdateRequestBuilder prepareUpdate = client.prepareUpdate(index, type,
-				id).setScript(script);
+		HashMap<String,Object> scriptParamsMap= new HashMap<String,Object>();
+		String scriptString=null;
+		if(newValue<0){
+				scriptParamsMap.put("count",-newValue);
+				scriptString="if(" + fieldName + "==null) {" + fieldName+ "=params.count}else{" + fieldName + "-=params.count}";
+		}else{
+				scriptParamsMap.put("count",newValue);
+				scriptString="if(" + fieldName + "==null) {" + fieldName+ "=params.count}else{" + fieldName + "+=params.count}";
+		}
+		Script script = new Script(ScriptType.INLINE, "painless", scriptString, scriptParamsMap);
+
+		UpdateRequestBuilder prepareUpdate = client.prepareUpdate(index, type, id).setScript(script);
 		if (routing != null) {
 			prepareUpdate.setRouting(routing);
 		}
@@ -229,6 +236,7 @@ public class ElasticSearch {
 		UpdateRequest response = new UpdateRequest(index, type, id).doc(
 				new GsonBuilder().setDateFormat("YYYY-MM-dd").serializeNulls()
 						.create().toJson(data)).docAsUpsert(true);
+		logger.info("log "+   new Gson().toJson(data));
 		if (routing != null) {
 			response.routing(routing);
 		}

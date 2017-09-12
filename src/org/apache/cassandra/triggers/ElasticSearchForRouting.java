@@ -66,7 +66,7 @@ public class ElasticSearchForRouting {
 	public String getDocumentRouting(String index, String type, String id,
 			boolean refresh, Map<String, Object> primaryKeyData,
 			Map<String, Object> clusteringKeyData) {
-		Map<String, Object> result = null;
+		String result = null;
 		String searchindex = Constants.INDEX_ROUTING_MAP.get(index);
 		if (searchindex == null) {
 			return null;
@@ -82,21 +82,22 @@ public class ElasticSearchForRouting {
 		if (value != null) {
 			return value.toString();
 		}
-
+		String searchkey = Constants.INDEX_KEY_MAP.get(index);
 		SearchResponse getResponse = null;
 		try {
 			getResponse = client.prepareSearch(index).setTypes(index)
 					.setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-					.setQuery(QueryBuilders.matchQuery(searchindex, id))
+					.setQuery(QueryBuilders.matchQuery(searchkey, id))
 					.setExplain(true).get();
-			for (SearchHit hit : getResponse.getHits()) {
-				result = hit.field("_source").<Map<String, Object>> getValue();
-				break;
+			for (SearchHit hit : getResponse.getHits().getHits()) {
+				result = hit.getFields().get("_routing").value();
+				return result.toString();
 			}
 
 		} catch (NullPointerException e) {
+			logger.error("ex",e);
 			logger.info("entry not found: " + e.getMessage());
 		}
-		return result.get(searchindex).toString();
+		return null;
 	}
 }

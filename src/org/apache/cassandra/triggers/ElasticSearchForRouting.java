@@ -67,7 +67,7 @@ public class ElasticSearchForRouting {
 			boolean refresh, Map<String, Object> primaryKeyData,
 			Map<String, Object> clusteringKeyData) {
 		String result = null;
-		String searchindex = Constants.INDEX_ROUTING_MAP.get(index);
+		String searchindex = Constants.INDEX_ROUTING_MAP.get(Constants.TABLE_INDEX_MAP.get(index));
 		if (searchindex == null) {
 			return null;
 		}

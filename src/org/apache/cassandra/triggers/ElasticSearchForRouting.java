@@ -82,7 +82,7 @@ public class ElasticSearchForRouting {
 		if (value != null) {
 			return value.toString();
 		}
-		String searchkey = Constants.INDEX_KEY_MAP.get(index);
+		String searchkey = Constants.INDEX_KEY_MAP.get(Constants.TABLE_INDEX_MAP.get(indexColumnFamily));
 		SearchResponse getResponse = null;
 		try {
 			getResponse = client.prepareSearch(index).setTypes(index)

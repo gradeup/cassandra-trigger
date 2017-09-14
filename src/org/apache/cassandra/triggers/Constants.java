@@ -8,6 +8,8 @@ public class Constants {
 	public static final ArrayList<String> ELASTIC_CLUSTER_MAP;
 	public static final String DEFAULT_ELASTIC_CLUSTER_NAME;
 	public static final String RABBIT_URL = "";
+	public static final String MEMCACHE_URL = null;
+	public static final int MEMCACHE_PORT = 11211;
 	public static final HashMap<String, String> INDEX_KEY_MAP;
 	public static final HashMap<String, String> TABLE_INDEX_MAP;
 	public static final HashMap<String, String> INDEX_ROUTING_MAP;

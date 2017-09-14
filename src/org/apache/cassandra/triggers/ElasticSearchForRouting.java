@@ -93,6 +93,13 @@ public class ElasticSearchForRouting {
 		}else{
 			searchkey = Constants.INDEX_KEY_MAP.get(index);
 		}
+		Object memValue = Memcached.getValue("routing-"+index+"-"+id);
+		if(memValue!=null){
+			value=memValue.toString();
+		}
+		if (value != null) {
+			return value.toString();
+		}
 		SearchResponse getResponse = null;
 		try {
 			getResponse = client.prepareSearch(index).setTypes(index)

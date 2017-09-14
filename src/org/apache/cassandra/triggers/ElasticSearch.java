@@ -318,6 +318,26 @@ public class ElasticSearch {
 			}
 			return scriptString;
 		}
+		case "org.apache.cassandra.db.marshal.MapType": {
+			scriptString="";
+			if (dataMap != null) {
+				HashMap<String,Object> hashMap=(HashMap<String,Object>) dataMap;
+				int i=0;
+				for(Map.Entry<String,Object> entry : hashMap.entrySet()){
+					i++;
+					if(entry.getValue()==null){
+						scriptString += "ctx._source." + key + ".remove(params." + key
+							+ i + ");";
+						scriptMap.put(key + i, entry.getKey());
+					}else{
+						scriptString += "ctx._source." + key + ".put(params." + key+ i + ","+key+"value"+i+");";
+						scriptMap.put(key+"value"+i,entry.getValue());
+						scriptMap.put(key + i, entry.getKey());
+					}
+				}
+			}
+			return scriptString;
+		}
 
 		default:
 			scriptString += "ctx._source." + key + "=" + dataMap + ";";

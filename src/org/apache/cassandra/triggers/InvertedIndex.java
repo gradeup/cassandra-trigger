@@ -212,8 +212,6 @@ public class InvertedIndex implements ITrigger {
 							myString.updateType = "UPDATE_COUNTER";
 							dataMap.put(columnName, cellValue);
 						} else if (columnType instanceof MapType<?, ?>) {
-							//updateColumnCollectionInfo.put(columnName,
-							//		columnType.getClass().getName());
 							MapType<Object, Object> mapType = (MapType<Object, Object>) columnType;
 
 							AbstractType<Object> keysType = mapType
@@ -231,6 +229,9 @@ public class InvertedIndex implements ITrigger {
 									if (cell.isLive(0)) {
 										map.put(cellKey.toString(), cellValue);
 									} else {
+										if(!updateColumnCollectionInfo.containsKey(columnName)){
+											updateColumnCollectionInfo.put(columnName,
+												                                                                        columnType.getClass().getName());}
 										map.put(cellKey.toString(), null);
 									}
 								} else {
@@ -240,6 +241,10 @@ public class InvertedIndex implements ITrigger {
 									if (cell.isLive(0)) {
 										map.put(cellKey.toString(), cellValue);
 									} else {
+										if(!updateColumnCollectionInfo.containsKey(columnName)){
+											                                                                                        updateColumnCollectionInfo.put(columnName,
+
+																							                                      columnType.getClass().getName());}
 										map.put(cellKey.toString(), null);
 									}
 								}

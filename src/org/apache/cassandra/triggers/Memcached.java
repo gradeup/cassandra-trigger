@@ -12,6 +12,9 @@ public class Memcached {
 	private static final Logger logger = LoggerFactory.getLogger(Memcached.class);
 
 	public static Object getValue(String cacheKey) {
+		if(Constants.MEMCACHE_URL==null||Constants.MEMCACHE_URL.length==0){
+			return null;
+		}
 		try{
 		if(mcc==null){
 			mcc = new MemcachedClient(new InetSocketAddress(Constants.MEMCACHE_URL, Constants.MEMCACHE_PORT));

@@ -40,6 +40,16 @@ bin/nodetool reloadtriggers
 CREATE TRIGGER test1 ON "Keyspace1"."Standard1" USING 'org.apache.cassandra.triggers.InvertedIndex';
 ```
 
+## Routing
+If there is a routing key for an index, define its key in Constants.java file. 
+Code tries to get value from passed data in cassandra trigger values, if it doesn't get the value it searches in memcache and if there is no value in memcache it hits a search query in elasticsearch for the document id and get routing from it.
+
+#### Using Memcache for Routing key 
+The key used for getting routing value from memcache is : `routing-<index_value>-<index_id_value>` . It would have routing value.
+You can set this value in your application code with a ttl may be 5 minutes.
+
+PS : This is all done for optimizing fetching of routing value. You can ignore this completely and still trigger would work.
+
 ## Just for fun
 
 Incase your elasticsearch/other database is down or not working, it sends the message(with data) to rabbitmq server. You can run a rabbitmq consumer to read the data from queue and insert it into elasticsearch.

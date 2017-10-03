@@ -236,7 +236,6 @@ public class ElasticSearch {
 		UpdateRequest response = new UpdateRequest(index, type, id).doc(
 				new GsonBuilder().setDateFormat("YYYY-MM-dd").serializeNulls()
 						.create().toJson(data)).docAsUpsert(true);
-		logger.info("log "+   new Gson().toJson(data));
 		if (routing != null) {
 			response.routing(routing);
 		}

@@ -164,10 +164,12 @@ public class ElasticSearch {
 
 		updateDocument(index, type, id, routing, data);
 		if (scriptParamsMap != null && scriptParamsMap.size() > 0) {
-
 			updateDocument(index, type, id, routing, tempScript,
 					scriptParamsMap);
 		}
+		try{
+		client.admin().indices().prepareRefresh().get();
+		}catch(Exception e){logger.error("CAUTION : ",e);}
 	}
 
 	private String handleCollectionColumnFullUpdate(String key, Object csvalue,

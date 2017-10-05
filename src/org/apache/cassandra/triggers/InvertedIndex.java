@@ -28,6 +28,8 @@ import org.apache.cassandra.db.marshal.SetType;
 import org.apache.cassandra.db.partitions.Partition;
 import org.apache.cassandra.db.rows.Cell;
 import org.apache.cassandra.db.rows.CellPath;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.cassandra.db.rows.Row;
 import org.apache.cassandra.db.rows.Row.Deletion;
 import org.apache.cassandra.db.rows.Unfiltered;
@@ -466,8 +468,9 @@ public class InvertedIndex implements ITrigger {
 																			.toString(),
 																			entry.getValue());
 														}
+														if(finalObject.size()==0){data.put(columnName,null);}else{
 														data.put(columnName,
-																finalObject);
+																finalObject);}
 
 													} else {
 														data.put(

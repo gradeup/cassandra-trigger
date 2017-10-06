@@ -168,7 +168,7 @@ public class ElasticSearch {
 					scriptParamsMap);
 		}
 		try{
-		client.admin().indices().prepareRefresh().get();
+		client.admin().indices().prepareRefresh(index).get();
 		}catch(Exception e){logger.error("CAUTION : ",e);}
 	}
 

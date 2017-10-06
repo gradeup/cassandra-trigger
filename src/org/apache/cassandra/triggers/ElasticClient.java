@@ -34,7 +34,7 @@ public class ElasticClient{
 	}
 
 	private static HashMap <String,ElasticClient> elasticClients=new HashMap<String,ElasticClient>();
-	public static PreBuiltTransportClient getClient(String index){
+	public static synchronized PreBuiltTransportClient getClient(String index){
 		String clustername=Constants.INDEX_CLUSTER_MAP.get(index);
 		if(clustername==null){
 			Constants.INDEX_CLUSTER_MAP.put(index,Constants.DEFAULT_ELASTIC_CLUSTER_NAME);

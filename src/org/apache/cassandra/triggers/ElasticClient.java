@@ -34,7 +34,7 @@ public class ElasticClient{
 	}
 
 	private static HashMap <String,ElasticClient> elasticClients=new HashMap<String,ElasticClient>();
-	public static synchronized PreBuiltTransportClient getClient(String index){
+	public static PreBuiltTransportClient getClient(String index){
 		String clustername=Constants.INDEX_CLUSTER_MAP.get(index);
 		if(clustername==null){
 			Constants.INDEX_CLUSTER_MAP.put(index,Constants.DEFAULT_ELASTIC_CLUSTER_NAME);
@@ -45,33 +45,39 @@ public class ElasticClient{
 			return null;
 		}
 		if (elasticClient.client == null) {
-			try {
-				Settings settings = Settings.builder()
-						.put("cluster.name", elasticClient.clustername)
-						.put("client.transport.sniff", true)
-						.build();
-				elasticClient.client = new PreBuiltTransportClient(settings);
-				for(Map.Entry<String, Integer> entry : elasticClient.ipPortMap.entrySet()){
-						elasticClient.client.addTransportAddress(new InetSocketTransportAddress(
-								InetAddress.getByName(entry.getKey()),
-								entry.getValue()));
-				}
-
-			} catch (Exception e) {
-				e.printStackTrace();
-				if (elasticClient.client != null) {
-					try {
-						elasticClient.client.close();
-					} catch (Exception e1) {
-
-					}
-
-				}
-
-
-			}
-
+			return initalizeClient(elasticClient);
 		}
+		return elasticClient.client;
+	}
+	private static synchronized PreBuiltTransportClient initalizeClient(ElasticClient elasticClient){
+		if (elasticClient.client == null) {
+                        try {
+                                Settings settings = Settings.builder()
+                                                .put("cluster.name", elasticClient.clustername)
+                                                .put("client.transport.sniff", true)
+                                                .build();
+                                elasticClient.client = new PreBuiltTransportClient(settings);
+                                for(Map.Entry<String, Integer> entry : elasticClient.ipPortMap.entrySet()){
+                                                elasticClient.client.addTransportAddress(new InetSocketTransportAddress(
+                                                                InetAddress.getByName(entry.getKey()),
+                                                                entry.getValue()));
+                                }
+
+                        } catch (Exception e) {
+                                e.printStackTrace();
+                                if (elasticClient.client != null) {
+                                        try {
+                                                elasticClient.client.close();
+                                        } catch (Exception e1) {
+
+                                        }
+
+                                }
+
+
+                        }
+
+                }	
 		return elasticClient.client;
 	}
 

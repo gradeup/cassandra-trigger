@@ -295,8 +295,8 @@ public class ElasticSearch {
 				int size = arrayList.size();
 				int i = 0;
 				for (Object object : arrayList) {
-					scriptString += "if(!(ctx._source." + key + ".contains("
-							+ object + "))){ctx._source." + key
+					scriptString += "if(!(ctx._source." + key + ".contains(params."
+							+ key + i + "))){ctx._source." + key
 							+ ".add(params." + key + i + ");}";
 					scriptMap.put(key + i, object);
 					i++;

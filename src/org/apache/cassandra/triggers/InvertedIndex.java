@@ -284,7 +284,7 @@ public class InvertedIndex implements ITrigger {
 									arrayList.add(cellValue);
 									deletedDataMap.put(columnName, arrayList);
 								} else {
-									ArrayList<Object> arrayList = (ArrayList<Object>) dataMap
+									ArrayList<Object> arrayList = (ArrayList<Object>) deletedDataMap
 											.get(columnName);
 									if (!arrayList.contains(cellValue)) {
 										arrayList.add(cellValue);
@@ -339,7 +339,7 @@ public class InvertedIndex implements ITrigger {
 						ColumnDefinition columnDefinition = (ColumnDefinition) iterator
 								.next();
 						String columnName = columnDefinition.name + "";
-						if (!dataMap.containsKey(columnName)) {
+						if (!dataMap.containsKey(columnName) && !deletedDataMap.containsKey(columnName)) {
 							AbstractType<?> columnType = columnDefinition.type;
 							updateLaterCollectionList.put(columnName,
 									columnType);

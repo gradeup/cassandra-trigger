@@ -137,7 +137,7 @@ public class ElasticSearch {
 		 Map<String, Object> scriptParamsMap = new HashMap<String, Object>();
 		 String tempScript = "";
 		 String deviceType=data.get("devicetype")+"";     
-		String scriptString = "if(ctx._source.usertags==null){ctx._source.tagData=params.emptyobject;}if(ctx._source.tagData['" + deviceType + "']==null){ctx._source.tagData['"
+		String scriptString = "if(ctx._source.usertags==null){ctx._source.usertags=params.emptyobject;}if(ctx._source.usertags['" + deviceType + "']==null){ctx._source.usertags['"
                                                                         + deviceType + "']=[];}";
 		Map<String, Object> scriptMap = new HashMap<String, Object>();
 		scriptMap.put("emptyobject",new HashMap<String,Object>());

@@ -113,7 +113,6 @@ public class ElasticSearch {
 		if (client == null) {
 			initialize();
 		}
-		logger.info("counter value: " + key + " newValue: " + newValue);
 		String fieldName = "ctx._source." + key;
 		HashMap<String,Object> scriptParamsMap= new HashMap<String,Object>();
 		String scriptString=null;
@@ -133,10 +132,69 @@ public class ElasticSearch {
 		bulkRequest.add(prepareUpdate);
 	}
 
+	public void updateFieldsInTagIndex(String index, String type,String id,String routing,Map<Object, Object> data,
+			Map<Object, String> updateColumnCollectionInfo,Map<Object, Object> deletedDataMap){
+		 Map<String, Object> scriptParamsMap = new HashMap<String, Object>();
+		 String tempScript = "";
+		 String deviceType=data.get("devicetype")+"";     
+		String scriptString = "if(ctx._source.usertags==null){ctx._source.tagData=params.emptyobject;}if(ctx._source.tagData['" + deviceType + "']==null){ctx._source.tagData['"
+                                                                        + deviceType + "']=[];}";
+		Map<String, Object> scriptMap = new HashMap<String, Object>();
+		scriptMap.put("emptyobject",new HashMap<String,Object>());
+		 if (null != updateColumnCollectionInfo
+				 && updateColumnCollectionInfo.size() > 0) {
+			 for (Map.Entry<Object, String> entry : updateColumnCollectionInfo.entrySet()) {
+				 
+			 if (data.containsKey(entry.getKey())) {
+				deviceType=data.get("devicetype")+"";		 
+				if (data.get(entry.getKey()) != null) {
+                                ArrayList<Object> arrayList = (ArrayList<Object>) data.get(entry.getKey());
+                                int size = arrayList.size();
+                                int i = 0;
+                                for (Object object : arrayList) {
+                                        scriptString += "if(!(ctx._source.usertags['" + deviceType + "'].contains(params."
+                                                        + deviceType + i + "))){ctx._source.usertags['" + deviceType
+                                                        + "'].add(params." + deviceType + i + ");}";
+                                        scriptMap.put(deviceType + i, object);
+                                        i++;
+                                }
+                        }	
+
+			 }
+			 }
+		}
+		if (null != deletedDataMap && deletedDataMap.size() > 0) {
+			for (Map.Entry<Object, Object> entry : deletedDataMap.entrySet()) {
+				if (deletedDataMap.get(entry.getKey()) != null) {
+				ArrayList<Object> arrayList = (ArrayList<Object>) deletedDataMap.get(entry.getKey());		
+				int size = arrayList.size();int i = 0;
+				for (Object object : arrayList) {
+					scriptString += "if((ctx._source.usertags['" + deviceType + "'].contains(params."
+                                                        + deviceType + i + "))){ctx._source.usertags['" + deviceType
+                                                        + "'].remove(ctx._source.usertags['"+deviceType+"'].indexOf(params." + deviceType + i + "));}";
+                                        scriptMap.put(deviceType + i, object);
+                                        i++;
+				}
+				}
+			}
+		}
+		if (scriptMap != null && scriptMap.size() > 0) {
+                        updateDocument("user", "user", id, routing, scriptString,
+                                        scriptMap);
+                }
+		try{
+                client.admin().indices().prepareRefresh("user").get();
+                }catch(Exception e){logger.error("CAUTION : ",e);}
+
+	}
 	public void updateFieldsInDocument(String index, String type, String id,
 			String routing, Map<Object, Object> data,
 			Map<Object, String> updateColumnCollectionInfo,
 			Map<Object, Object> deletedDataMap) {
+		if(index.equalsIgnoreCase("user_tags")){
+			updateFieldsInTagIndex(index,type,id,routing,data,updateColumnCollectionInfo,deletedDataMap);
+			return;
+		}
 
 		Map<String, Object> scriptParamsMap = new HashMap<String, Object>();
 		String tempScript = "";

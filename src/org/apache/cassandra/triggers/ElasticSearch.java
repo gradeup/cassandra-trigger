@@ -107,6 +107,15 @@ public class ElasticSearch {
 		}
 		close();
 	}
+	public void refreshEs(String index){
+		if(index.equalsIgnoreCase("user_tags")){
+			return ;
+		}
+		try{
+                client.admin().indices().prepareRefresh(index).get();
+                }catch(Exception e){logger.error("CAUTION : ",e);}
+
+	}
 
 	public void updateCounterFieldInDocument(String index, String type,
 			String id, String routing, Object key, long newValue) {
@@ -182,10 +191,6 @@ public class ElasticSearch {
                         updateDocument("user", "user", id, routing, scriptString,
                                         scriptMap);
                 }
-		try{
-                client.admin().indices().prepareRefresh("user").get();
-                }catch(Exception e){logger.error("CAUTION : ",e);}
-
 	}
 	public void updateFieldsInDocument(String index, String type, String id,
 			String routing, Map<Object, Object> data,
@@ -225,9 +230,6 @@ public class ElasticSearch {
 			updateDocument(index, type, id, routing, tempScript,
 					scriptParamsMap);
 		}
-		try{
-		client.admin().indices().prepareRefresh(index).get();
-		}catch(Exception e){logger.error("CAUTION : ",e);}
 	}
 
 	private String handleCollectionColumnFullUpdate(String key, Object csvalue,

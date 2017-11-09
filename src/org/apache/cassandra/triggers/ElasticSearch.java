@@ -107,6 +107,15 @@ public class ElasticSearch {
 		}
 		close();
 	}
+	public void refreshEs(String index){
+		if(index.equalsIgnoreCase("user_tags")){
+			return ;
+		}
+		try{
+                client.admin().indices().prepareRefresh(index).get();
+                }catch(Exception e){logger.error("CAUTION : ",e);}
+
+	}
 
 	public void updateCounterFieldInDocument(String index, String type,
 			String id, String routing, Object key, long newValue) {
@@ -137,7 +146,7 @@ public class ElasticSearch {
 		 Map<String, Object> scriptParamsMap = new HashMap<String, Object>();
 		 String tempScript = "";
 		 String deviceType=data.get("devicetype")+"";     
-		String scriptString = "if(ctx._source.usertags==null){ctx._source.tagData=params.emptyobject;}if(ctx._source.tagData['" + deviceType + "']==null){ctx._source.tagData['"
+		String scriptString = "if(ctx._source.usertags==null){ctx._source.usertags=params.emptyobject;}if(ctx._source.usertags['" + deviceType + "']==null){ctx._source.usertags['"
                                                                         + deviceType + "']=[];}";
 		Map<String, Object> scriptMap = new HashMap<String, Object>();
 		scriptMap.put("emptyobject",new HashMap<String,Object>());
@@ -182,10 +191,6 @@ public class ElasticSearch {
                         updateDocument("user", "user", id, routing, scriptString,
                                         scriptMap);
                 }
-		try{
-                client.admin().indices().prepareRefresh("user").get();
-                }catch(Exception e){logger.error("CAUTION : ",e);}
-
 	}
 	public void updateFieldsInDocument(String index, String type, String id,
 			String routing, Map<Object, Object> data,
@@ -225,9 +230,6 @@ public class ElasticSearch {
 			updateDocument(index, type, id, routing, tempScript,
 					scriptParamsMap);
 		}
-		try{
-		client.admin().indices().prepareRefresh(index).get();
-		}catch(Exception e){logger.error("CAUTION : ",e);}
 	}
 
 	private String handleCollectionColumnFullUpdate(String key, Object csvalue,

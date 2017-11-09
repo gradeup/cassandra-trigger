@@ -368,7 +368,7 @@ public class InvertedIndex implements ITrigger {
 				es = new ElasticSearch(index);
 				String routing = getRoutingFromEs(currentEsId, currentIndex,
 						partitionKeyData, clusterKeyData);
-
+				boolean shouldRefresh=false;
 				if (myString.updateType.equalsIgnoreCase("UPDATE_COUNTER")) {
 					es.updateCounterFieldsInDocument(index, type, esId,
 							routing, dataMap);
@@ -377,6 +377,7 @@ public class InvertedIndex implements ITrigger {
 					es.updateFieldsInDocument(index, type, esId, routing,
 							dataMap, updateColumnCollectionInfo, deletedDataMap);
 					shouldRun = true;
+					shouldRefresh = true;
 				} else if (myString.updateType.equalsIgnoreCase("DELETE_ROW")) {
 					es.deleteDocument(index, type, esId, routing);
 					shouldRun = true;
@@ -384,6 +385,7 @@ public class InvertedIndex implements ITrigger {
 				if (shouldRun) {
 					es.executeBulk();
 				}
+				if(shouldRefresh){es.refreshEs(index);}
 			}
 		} catch (RuntimeException e) {
 

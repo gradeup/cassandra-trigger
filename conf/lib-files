@@ -95,3 +95,4 @@ t-digest-3.0.jar
 thrift-server-0.3.7.jar
 transport-netty4-client-5.2.1.jar
 transport-recompiled.jar
+lettuce-4.4.0.Final.jar
